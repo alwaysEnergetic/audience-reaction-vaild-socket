@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import queryString from "query-string";
 import io from "socket.io-client";
+import Square from "./Square";
 
 let socket;
 
@@ -9,6 +10,8 @@ const Chat = ({ location }) => {
   const [room, setRoom] = useState("");
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
+  const [users, setUsers] = useState([]);
+  const [mySocketId, setMySocketId] = useState("");
 
   const ENDPOINT = "http://localhost:5000";
 
@@ -18,6 +21,12 @@ const Chat = ({ location }) => {
     setRoom(room);
     setName(name);
 
+    if (performance.navigation.type === 1) {
+      console.log("This page is reloaded");
+    } else {
+      console.log("This page is not reloaded");
+    }
+
     socket.emit("join", { name, room }, (error) => {
       if (error) {
         alert(error);
@@ -26,42 +35,33 @@ const Chat = ({ location }) => {
   }, [location.search]);
 
   useEffect(() => {
+    socket.on("select", (index) => {});
+  }, []);
+
+  useEffect(() => {
     socket.on("message", (message) => {
       setMessages((messages) => [...messages, message]);
     });
-    // socket.on("roomData", ({ users }) => {
-    //   console.log(users);
-    //   setUsers(users);
-    // });
   }, []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (message) {
-      socket.emit("sendMessage", { message });
-      setMessage("");
-    } else alert("empty input");
-  };
+  useEffect(() => {
+    socket.on("users", (user) => {
+      setUsers(user.usersArray);
+    });
+  }, []);
 
   return (
     <div>
       {messages.map((val, i) => {
         return (
-          <div key={i}>
+          <div key={i} className="message">
             {val.text}
             <br />
             <b>{val.user}</b>
           </div>
         );
       })}
-      <form action="" onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        />
-        <input type="submit" />
-      </form>
+      <Square users={users} />
     </div>
   );
 };

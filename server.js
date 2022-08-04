@@ -11,24 +11,33 @@ const io = require("socket.io")(server, {
     credentials: true,
   },
 });
-const { addUser, removeUser } = require("./user");
+const { addUser, removeUser, users } = require("./user");
 
 const PORT = 5000;
 
 io.on("connection", (socket) => {
   socket.on("join", ({ name, room }, callBack) => {
     const { user, error } = addUser({ id: socket.id, name, room });
-    if (error) return callBack(error);
+    const createdUsers = users();
 
-    //socket.join(user.room);
+    if (error) return callBack(error);
+    socket.join(user.room);
+
     socket.emit("message", {
-      user: "Admin",
-      text: `Welocome to ${user.room}`,
+      //user: `I am ${user.name}!`,
+      text: `Welcome to ${user.room}`,
     });
 
-    socket.broadcast
-      .to(user.room)
-      .emit("message", { user: "Admin", text: `${user.name} has joined!` });
+    io.to(user.room).emit("users", {
+      usersArray: createdUsers,
+    });
+
+    console.log("----users", users());
+    socket.broadcast.to(user.room).emit("message", {
+      //user: `I am ${user.name}!`,
+      //text: `${user.name} has joined!`,
+    });
+
     callBack(null);
 
     socket.on("sendMessage", ({ message }) => {
@@ -37,14 +46,29 @@ io.on("connection", (socket) => {
         text: message,
       });
     });
+
+    socket.on("select", ({ index, socketId }) => {
+      console.log("------index,sockeId-->", index, socketId);
+      io.to(user.room).emit("choose", {
+        emojIndex: index,
+        socketId: socketId,
+      });
+    });
   });
+
   socket.on("disconnect", () => {
     const user = removeUser(socket.id);
+    const removedUsers = users();
     console.log(user);
-    io.to(user.room).emit("message", {
-      user: "Admin",
-      text: `${user.name} just left the room`,
-    });
+    if (user !== undefined) {
+      io.to(user.room).emit("message", {
+        //user: "Admin",
+        //text: `${user.name} just left the room`,
+      });
+      io.to(user.room).emit("users", {
+        usersArray: removedUsers,
+      });
+    }
     console.log("A disconnection has been made");
   });
 });
