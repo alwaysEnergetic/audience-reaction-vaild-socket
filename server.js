@@ -15,13 +15,22 @@ const { addUser, removeUser, users } = require("./user");
 const PORT = 5000;
 
 io.on("connection", (socket) => {
-  socket.on("select", ({ index, socketId }) => {
-    console.log("------index,sockeId-->", index, socketId);
-    socket.emit("choose", {
+  socket.on("select", ({ index, socketId, room }) => {
+    console.log("------index,sockeId-->", index, socketId, room);
+    io.to(room).emit("choose", {
       emojIndex: index,
       socketId: socketId,
+      room: room,
     });
   });
+
+  socket.on("fade", ({ room }) => {
+    console.log("------flag-->", room);
+    io.to(room).emit("fadeAway", {
+      flag: false,
+    });
+  });
+
   socket.on("join", ({ name, room }, callBack) => {
     const { user, error } = addUser({ id: socket.id, name, room });
     const createdUsers = users();
@@ -30,18 +39,11 @@ io.on("connection", (socket) => {
     socket.join(user.room);
 
     socket.emit("message", {
-      //user: `I am ${user.name}!`,
       text: `Welcome to ${user.room}`,
     });
 
     io.to(user.room).emit("users", {
       usersArray: createdUsers,
-    });
-
-    console.log("----users", users());
-    socket.broadcast.to(user.room).emit("message", {
-      //user: `I am ${user.name}!`,
-      //text: `${user.name} has joined!`,
     });
 
     callBack(null);
@@ -52,12 +54,13 @@ io.on("connection", (socket) => {
         text: message,
       });
     });
+
+    console.log("---users------->", users);
   });
 
   socket.on("disconnect", () => {
     const user = removeUser(socket.id);
     const removedUsers = users();
-    console.log(user);
     if (user !== undefined) {
       io.to(user.room).emit("message", {
         //user: "Admin",

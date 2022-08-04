@@ -11,8 +11,17 @@ const Chat = ({ location }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
   const [users, setUsers] = useState([]);
-  const [mySocketId, setMySocketId] = useState("");
+  const [emotion, setEmotion] = useState({
+    emojIndex: null,
+    socketId: null,
+    room: null,
+  });
 
+  const [flag, setFlag] = useState(true);
+
+  const handleFlag = () => {
+    setFlag(true);
+  };
   const ENDPOINT = "http://localhost:5000";
 
   useEffect(() => {
@@ -21,22 +30,12 @@ const Chat = ({ location }) => {
     setRoom(room);
     setName(name);
 
-    if (performance.navigation.type === 1) {
-      console.log("This page is reloaded");
-    } else {
-      console.log("This page is not reloaded");
-    }
-
     socket.emit("join", { name, room }, (error) => {
       if (error) {
         alert(error);
       }
     });
   }, [location.search]);
-
-  useEffect(() => {
-    socket.on("select", (index) => {});
-  }, []);
 
   useEffect(() => {
     socket.on("message", (message) => {
@@ -47,6 +46,23 @@ const Chat = ({ location }) => {
   useEffect(() => {
     socket.on("users", (user) => {
       setUsers(user.usersArray);
+    });
+  }, []);
+
+  useEffect(() => {
+    socket.on("choose", (emotion) => {
+      setEmotion({
+        emojIndex: emotion.emojIndex,
+        socketId: emotion.socketId,
+        room: emotion.room,
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    socket.on("fadeAway", (flagOpt) => {
+      console.log("----flagOpt=----", flagOpt.flag);
+      setFlag(flagOpt.flag);
     });
   }, []);
 
@@ -61,7 +77,14 @@ const Chat = ({ location }) => {
           </div>
         );
       })}
-      <Square users={users} />
+      <Square
+        users={users}
+        index={emotion.emojIndex}
+        id={emotion.socketId}
+        room={emotion.room}
+        flag={flag}
+        handleFlag={handleFlag}
+      />
     </div>
   );
 };

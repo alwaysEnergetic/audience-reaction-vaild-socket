@@ -12,25 +12,53 @@ const Square = (props) => {
         ) : index === 2 ? (
           <div>
             <div className="general-3">
-              <Audience name={item} />
+              <Audience
+                name={item}
+                index={props.index}
+                id={props.id}
+                room={props.room}
+                flag={props.flag}
+                handleFlag={props.handleFlag}
+              />
             </div>
           </div>
         ) : index > 3 ? (
           <>
             <div className="general-4">
-              <Audience name={item} />
+              <Audience
+                name={item}
+                index={props.index}
+                id={props.id}
+                room={props.room}
+                flag={props.flag}
+                handleFlag={props.handleFlag}
+              />
             </div>
           </>
         ) : index === 1 ? (
           <>
             <div className="general-1">
-              <Audience name={item} />
+              <Audience
+                name={item}
+                index={props.index}
+                id={props.id}
+                room={props.room}
+                flag={props.flag}
+                handleFlag={props.handleFlag}
+              />
             </div>
           </>
         ) : (
           <>
             <div className="general-2">
-              <Audience name={item} />
+              <Audience
+                name={item}
+                index={props.index}
+                id={props.id}
+                room={props.room}
+                flag={props.flag}
+                handleFlag={props.handleFlag}
+              />
             </div>
           </>
         );
