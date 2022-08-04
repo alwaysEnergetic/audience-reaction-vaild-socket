@@ -12,10 +12,16 @@ const io = require("socket.io")(server, {
   },
 });
 const { addUser, removeUser, users } = require("./user");
-
 const PORT = 5000;
 
 io.on("connection", (socket) => {
+  socket.on("select", ({ index, socketId }) => {
+    console.log("------index,sockeId-->", index, socketId);
+    socket.emit("choose", {
+      emojIndex: index,
+      socketId: socketId,
+    });
+  });
   socket.on("join", ({ name, room }, callBack) => {
     const { user, error } = addUser({ id: socket.id, name, room });
     const createdUsers = users();
@@ -44,14 +50,6 @@ io.on("connection", (socket) => {
       io.to(user.room).emit("message", {
         user: user.name,
         text: message,
-      });
-    });
-
-    socket.on("select", ({ index, socketId }) => {
-      console.log("------index,sockeId-->", index, socketId);
-      io.to(user.room).emit("choose", {
-        emojIndex: index,
-        socketId: socketId,
       });
     });
   });

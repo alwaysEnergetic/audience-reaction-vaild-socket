@@ -13,18 +13,18 @@ const Audience = (props) => {
   socket = io(ENDPOINT);
 
   const handleClick = (index) => {
-    socket.emit("select", { index, socketId }, (error) => {
-      if (error) {
-        alert(error);
-      }
-    });
+    console.log("---index-", index, socketId);
+    socket.emit("select", { index, socketId });
   };
 
   useEffect(() => {
     socket.on("choose", (emotion) => {
       console.log("emotion", emotion.emojIndex, emotion.socketId);
+      if (socketId === emotion.socketId) {
+        setBtn(defaultEmo[emotion.emojIndex]);
+      }
     });
-  }, []);
+  });
 
   return (
     <div>
